@@ -56,7 +56,21 @@ var locations = [
 }
 
 var viewModel = function() {
+    // the observable array to be binded to
     this.titles = ko.observableArray(locations);
+    // observable value to hold the filterd place
+    this.placeName = ko.observable("");
+    
+    this.filter = function(){
+        
+
+           
+               console.log(this.titles().pop())
+           
+           
+        
+    
+    }
 };
 
 ko.applyBindings(new viewModel());

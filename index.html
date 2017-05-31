@@ -15,7 +15,11 @@
 <body>  
    
     <div class="col-md-2">
-        <ul data-bind="foreach: titles">
+        <section style="display: flex">
+            <input class="form-control" data-bind="textInput: placeName">
+            <button class="btn btn-primary" data-bind="click: filter">Filter</button>
+        </section>
+        <ul class="list-unstyled" data-bind="foreach: titles">
             <li data-bind="text: title"></li>
         </ul>
     
