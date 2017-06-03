@@ -11,7 +11,7 @@ var locations = [
 
  var map;
  var bounds;
- var infoWindowI;
+
  var initMap =function(){
      // start maps on the "map" div
        map = new google.maps.Map(document.getElementById('map'), {
@@ -19,8 +19,8 @@ var locations = [
           zoom: 13
        });
 
-       var infowindow = new google.maps.InfoWindow();
-           bounds = new google.maps.LatLngBounds();
+       bounds = new google.maps.LatLngBounds();
+       var infowindow = new google.maps.InfoWindow({});
 
        // loop through all locations to create markers
        for (var i = 0; i < locations.length; i++) {
@@ -38,9 +38,7 @@ var locations = [
           // Push the marker to our locations array
           locations[i].marker = marker;
 
-          var infowindow = new google.maps.InfoWindow({});
-          
-          // to get all the places ratings
+          // to get all the places ratings from foursquare
          $.ajax({url: "https://api.foursquare.com/v2/venues/"+locations[i].id+"?oauth_token=ENTUA10JFDOS0AD4C10GDHJQQHHHHBSLCD5FXQ5IIWTBV0QR&v=20170603", success: function(result){
                rating = result.response.venue.rating;  
                //get the rating and set it on the infowindow content
@@ -53,17 +51,17 @@ var locations = [
            // add each infowindow in the locations array
             locations[i].info = infowindow;
          
-          bounds.extend(locations[i].marker.position);
+            bounds.extend(locations[i].marker.position);
        };
         // Extend the boundaries of the map for each marker
         map.fitBounds(bounds);
         
         //create click event listener for each marker
         for( var i =0 ; i < locations.length; i++){
-          infoWindowI = locations[i].info;
-           locations[i].marker.addListener('click', function() {
-            openInfo(this, infoWindowI);
-          });
+          var infoWindow = locations[i].info;
+          locations[i].marker.addListener('click', function() {
+              openInfo(this, infoWindow);
+          });   
         };
         
         function openInfo(marker, infowindow) {
@@ -73,7 +71,7 @@ var locations = [
                 infowindow.open(map, marker);
                 // Make sure the marker property is cleared if the infowindow is closed.
                 infowindow.addListener('closeclick',function(){
-                  infowindow.setMarker = null;
+                    infowindow.setMarker = null;
                 });
             }
       };
@@ -81,14 +79,14 @@ var locations = [
 };
 
 function mapsError(){
-  document.getElementById('map').innerHTML = "<p class='text-center' style='margin-top: 300px'> Something went wrong when loading google maps, please try later </p>"
+    document.getElementById('map').innerHTML = "<p class='text-center' style='margin-top: 300px'> Something went wrong when loading google maps, please try later </p>"
 }
 
 function renderMarkers(filterdLocations){
     // clear all markers
     console.log(filterdLocations.length);
     for( var i=0; i< locations.length; i++){
-      locations[i].marker.setVisible(false);
+        locations[i].marker.setVisible(false);
     };
     // set the markers for filterd locations only
     for( var i=0; i< filterdLocations.length; i++){
@@ -128,11 +126,10 @@ var viewModel = function() {
         };
         return true;
     };
-    this.animateMarker = function(){
-        console.log(this);        
+    this.animateMarker = function(){        
         // stop animimating all markers
          for( var i= 0; i < locations.length; i++){
-          locations[i].marker.setAnimation(null);
+            locations[i].marker.setAnimation(null);
          }
         // set the targeted marker to animiate
         this.marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -153,7 +150,6 @@ var stringStartsWith = function (string, startsWith, filterdLocations) {
 var filterdArray=[];
 // Since the method stringStartsWith returns each filterd place in indivisual object, an array has to be created to push each objectthen render its marker
 var sendFilterd = function(filterdLocations){
-
     filterdArray.push(filterdLocations);
     renderMarkers(filterdArray);  
 };
