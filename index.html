@@ -16,11 +16,10 @@
    
     <div class="col-md-2">
         <section style="display: flex">
-            <input class="form-control" type="text" data-bind="value:placeName, valueUpdate: 'afterkeydown', event: { keydown: clearArray}">
-            <button class="btn btn-primary" data-bind="click: viewModel.filter">Filter</button>
+            <input class="form-control" placeholder="Filter" type="text" data-bind="value:placeName, valueUpdate: 'afterkeydown', event: { keydown: clearArray}">
         </section>
         <ul class="list-unstyled" data-bind="foreach: filter">
-            <li data-bind="text: title"></li>
+            <li data-bind="text: title, click: $parent.animateMarker"></li>
         </ul>
     
     </div>
@@ -28,7 +27,7 @@
         
     </div>
    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyDuBSwDruYmTFuqI8h0RWaGRT3R2mUU95Y&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyDuBSwDruYmTFuqI8h0RWaGRT3R2mUU95Y&callback=initMap" onerror="mapsError()">
     </script>
     <script src="js/jquery.js"></script>
     <script src="js/knockout-min.js"></script>

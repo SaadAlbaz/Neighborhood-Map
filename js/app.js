@@ -45,7 +45,11 @@ var locations = [
                rating = result.response.venue.rating;  
                //get the rating and set it on the infowindow content
                infowindow.setContent('<div>' + rating + '</div>');
-            }});
+            },
+            error: function () {
+                infowindow.setContent('<h5> Something went wrong when loading google maps, please try later </h5>');
+            }
+          });
            // add each infowindow in the locations array
             locations[i].info = infowindow;
          
@@ -75,6 +79,10 @@ var locations = [
       };
 
 };
+
+function mapsError(){
+  document.getElementById('map').innerHTML = "<p class='text-center' style='margin-top: 300px'> Something went wrong when loading google maps, please try later </p>"
+}
 
 function renderMarkers(filterdLocations){
     // clear all markers
@@ -119,6 +127,15 @@ var viewModel = function() {
             locations[i].marker.setVisible(true);
         };
         return true;
+    };
+    this.animateMarker = function(){
+        console.log(this);        
+        // stop animimating all markers
+         for( var i= 0; i < locations.length; i++){
+          locations[i].marker.setAnimation(null);
+         }
+        // set the targeted marker to animiate
+        this.marker.setAnimation(google.maps.Animation.BOUNCE);
     };
 
 };
