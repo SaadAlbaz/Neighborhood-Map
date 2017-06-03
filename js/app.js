@@ -37,20 +37,16 @@ var locations = [
           });
           // Push the marker to our locations array
           locations[i].marker = marker;
-        //  markers.push(marker);
-          // click event for the markers
-          //marker.addListener('click', toggleBounce);
+
           var infowindow = new google.maps.InfoWindow({});
           
+          // to get all the places ratings
          $.ajax({url: "https://api.foursquare.com/v2/venues/"+locations[i].id+"?oauth_token=ENTUA10JFDOS0AD4C10GDHJQQHHHHBSLCD5FXQ5IIWTBV0QR&v=20170603", success: function(result){
                rating = result.response.venue.rating;  
+               //get the rating and set it on the infowindow content
                infowindow.setContent('<div>' + rating + '</div>');
-               console.log(infowindow)
-              marker.addListener('click', function() {
-               openInfo(this, infoWindow);
-          });
             }});
-           
+           // add each infowindow in the locations array
             locations[i].info = infowindow;
          
           bounds.extend(locations[i].marker.position);
@@ -58,6 +54,7 @@ var locations = [
         // Extend the boundaries of the map for each marker
         map.fitBounds(bounds);
         
+        //create click event listener for each marker
         for( var i =0 ; i < locations.length; i++){
           infoWindowI = locations[i].info;
            locations[i].marker.addListener('click', function() {
