@@ -16,7 +16,7 @@
    
     <div class="col-md-2">
         <section style="display: flex">
-            <input class="form-control" placeholder="Filter" type="text" data-bind="value:placeName, valueUpdate: 'afterkeydown', event: { keydown: clearArray}">
+            <input class="form-control" placeholder="Filter" type="text" data-bind="value: placeName, valueUpdate: 'afterkeydown' ">
         </section>
         <ul class="list-unstyled" data-bind="foreach: filter">
             <li data-bind="text: title, click: $parent.animateMarker"></li>

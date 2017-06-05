@@ -18,40 +18,42 @@ var locations = [
           center: {lat: 24.806658, lng: 46.682607},
           zoom: 13
        });
-
+ 
        bounds = new google.maps.LatLngBounds();
        var infowindow = new google.maps.InfoWindow({});
 
        // loop through all locations to create markers
        for (var i = 0; i < locations.length; i++) {
-           var position = locations[i].location;
-           var title = locations[i].title;
-           var id = locations[i].id;
-           var rating;
-           var markerContent;
-           var marker = new google.maps.Marker({
-                map: map,
-                position: position,
-                title: title,
-                animation: google.maps.Animation.DROP,
-          });
-          // Push the marker to our locations array
-          locations[i].marker = marker;
+            (function(i) {
+                var position = locations[i].location;
+                var title = locations[i].title;
+                var id = locations[i].id;
+                var rating;
+                var markerContent;
+                var marker = new google.maps.Marker({
+                        map: map,
+                        position: position,
+                        title: title,
+                        animation: google.maps.Animation.DROP,
+                });
+                // Push the marker to our locations array
+                locations[i].marker = marker;
 
-          // to get all the places ratings from foursquare
-         $.ajax({url: "https://api.foursquare.com/v2/venues/"+locations[i].id+"?oauth_token=ENTUA10JFDOS0AD4C10GDHJQQHHHHBSLCD5FXQ5IIWTBV0QR&v=20170603", success: function(result){
-               rating = result.response.venue.rating;  
-               //get the rating and set it on the infowindow content
-               infowindow.setContent('<div>' + rating + '</div>');
-            },
-            error: function () {
-                infowindow.setContent('<h5> Something went wrong when loading google maps, please try later </h5>');
-            }
-          });
-           // add each infowindow in the locations array
-            locations[i].info = infowindow;
-         
-            bounds.extend(locations[i].marker.position);
+                // to get all the places ratings from foursquare
+                $.ajax({url: "https://api.foursquare.com/v2/venues/"+locations[i].id+"?oauth_token=ENTUA10JFDOS0AD4C10GDHJQQHHHHBSLCD5FXQ5IIWTBV0QR&v=20170603", success: function(result){
+                    rating = result.response.venue.rating;  
+                    //get the rating and add it to the array
+                    locations[i].marker.rating= rating;
+                    },
+                    error: function () {
+                        infowindow.setContent('<h5> Something went wrong when loading foursquare, please try later </h5>');
+                    }
+                });
+                // add each infowindow in the locations array
+                locations[i].info = infowindow;
+            
+                bounds.extend(locations[i].marker.position);
+        })(i);
        };
         // Extend the boundaries of the map for each marker
         map.fitBounds(bounds);
@@ -60,14 +62,16 @@ var locations = [
         for( var i =0 ; i < locations.length; i++){
           var infoWindow = locations[i].info;
           locations[i].marker.addListener('click', function() {
+              // open infowindow when marker clicked
               openInfo(this, infoWindow);
           });   
         };
         
         function openInfo(marker, infowindow) {
-        // Check to make sure the infowindow is not already opened on this marker.
+            // Check to make sure the infowindow is not already opened on this marker.
             if (infowindow.marker != marker) {
                 infowindow.marker = marker;
+                infowindow.setContent('<p> Rating: ' + marker.rating + '</p>')
                 infowindow.open(map, marker);
                 // Make sure the marker property is cleared if the infowindow is closed.
                 infowindow.addListener('closeclick',function(){
@@ -78,80 +82,52 @@ var locations = [
 
 };
 
+// error message when google maps unable to load
 function mapsError(){
     document.getElementById('map').innerHTML = "<p class='text-center' style='margin-top: 300px'> Something went wrong when loading google maps, please try later </p>"
-}
-
-function renderMarkers(filterdLocations){
-    // clear all markers
-    console.log(filterdLocations.length);
-    for( var i=0; i< locations.length; i++){
-        locations[i].marker.setVisible(false);
-    };
-    // set the markers for filterd locations only
-    for( var i=0; i< filterdLocations.length; i++){
-        filterdLocations[i].marker.setVisible(true);
-        bounds.extend(filterdLocations[i].marker.position);
-    };
-    // Extend the boundaries of the map for each marker
-    map.fitBounds(bounds);
 };
 
 var viewModel = function() {
+    var self = this;
     // the observable array
-    places = ko.observableArray(locations);
+    this.places = ko.observableArray(locations);
     // observable value to hold the filterd place
-    placeName = ko.observable();
+    this.placeName = ko.observable('');
     // the list of places to be binded to
     this.filter= ko.computed(function () {
           // the filterd place
-          var filtered = this.placeName();
+          var filtered = self.placeName().toLowerCase();
           // if no filterd place list all the places
           if (!filtered) {
-              return this.places();
+                // show all list marker if no place is filterd
+                for( var i= 0; i < locations.length; i++){
+                    if(locations[i].marker){
+                     locations[i].marker.setVisible(true);
+                    }
+                };
+              return self.places();
           } else {
-            // filter the places array 
-            return ko.utils.arrayFilter(this.places(), function (filterdLocations) {
-                  return stringStartsWith(filterdLocations.title.toLowerCase(), filtered.toLowerCase(), filterdLocations) ;
+            // filter the places  
+            return ko.utils.arrayFilter(self.places(), function (filterdLocations) {
+                var title = filterdLocations.title.toLowerCase();
+                // return true(>=0) if match is found
+                var match = title.indexOf(filtered) >= 0;
+                // if match show ht map marker
+                filterdLocations.marker.setVisible(match);
+                return match;
               });
-          }
+          };
     });
-    // with each key down clear the array that holds the filterd places
-    this.clearArray = function(){
-        // clear the array
-        filterdArray=[];
-        // set all places markers to true
-        for( var i=0; i< locations.length; i++){
-            locations[i].marker.setVisible(true);
-        };
-        return true;
-    };
+    //animate marker when clicked from the list
     this.animateMarker = function(){        
         // stop animimating all markers
          for( var i= 0; i < locations.length; i++){
             locations[i].marker.setAnimation(null);
-         }
+         };
         // set the targeted marker to animiate
         this.marker.setAnimation(google.maps.Animation.BOUNCE);
     };
 
-};
-
-// Orginal code belongs to "rniemeyer" on this blog https://github.com/knockout/knockout/issues/401
-// returns the places that starts with letters inputed by the user to filter
-var stringStartsWith = function (string, startsWith, filterdLocations) {
-    string = string || "";
-    if (startsWith.length > string.length)
-        return false;
-    return string.substring(0, startsWith.length) === startsWith && window.setTimeout(sendFilterd(filterdLocations));
-};
-
-// array to hold the filterd places
-var filterdArray=[];
-// Since the method stringStartsWith returns each filterd place in indivisual object, an array has to be created to push each objectthen render its marker
-var sendFilterd = function(filterdLocations){
-    filterdArray.push(filterdLocations);
-    renderMarkers(filterdArray);  
 };
 
 ko.applyBindings(new viewModel());
